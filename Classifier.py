@@ -6,8 +6,7 @@ import os
 import warnings
 import datetime
 from tensorflow.python.framework import ops
-from sklearn.metrics import precision_recall_fscore_support
-from sklearn.metrics.classification import accuracy_score
+
 from Processing import Data_Processing as DP
 from Classifier_RNN import LSTM_RNN
 
