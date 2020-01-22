@@ -7,12 +7,16 @@ import os
 class Data_Processing():
 
 
-    def __init__(self, training_data_dir, testing_data_dir):
+    def __init__(self, training_data_dir, testing_data_dir, vocab_dir):
         with open(training_data_dir, 'rb') as training_data:
             self.train_data =  pickle.load(training_data)
 
         with open(testing_data_dir, 'rb') as testing_data:
             self.test_data = pickle.load(testing_data)
+
+        with open(vocab_dir, 'rb') as vocab_data:
+            self.vocab_data = pickle.load(vocab_data)
+
 
         self.xtrain = []
         self.ytrain = []
@@ -102,7 +106,7 @@ class Data_Processing():
 
 
     def random_idx(self, one_hot_train, one_hot_test, random_state=24):
-        # randomize 
+        # randomize indices
         np.random.seed(random_state)
 
         train_len = len(self.xtrain)
@@ -127,17 +131,30 @@ class Data_Processing():
             new_xtest[ii] = self.xtest[idx]
             new_xtesthot[ii] = one_hot_test[idx]
 
-        return zip(new_xtrain, new_xtrainhot), zip(new_xtest, new_xtesthot)
+        return new_xtrain, new_xtrainhot, new_xtest, new_xtesthot
+
+
+    def handle_vocab(self):
+        # remove uncommon words
+        vocab = []
+        for word, value in self.vocab_data:
+            if value > 1:
+                vocab.append(word)
+        return vocab
+
 
 
     def main(self, random_state=24):
         self.split_data()
         # Lets not make these class variables to
         ytrain, ytest = self.tags_to_one_hot()
-        train_data, test_data = self.random_idx(ytrain, ytest, random_state=random_state)
+        train_para, train_lab, test_para, test_lab = self.random_idx(ytrain, ytest, random_state=random_state)
+        vocab = self.handle_vocab()
 
+        return train_para, train_lab, test_para, test_lab, vocab
 
 
 if __name__ == '__main__':
-    PCS = Data_Processing('training_dict.pkl', 'testing_dict.pkl ')
+    PCS = Data_Processing('training_dict.pkl', 'testing_dict.pkl', 'rank_vocab.pkl')
+    PCS.main()
 
