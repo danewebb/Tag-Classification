@@ -6,12 +6,13 @@ import os
 import warnings
 import datetime
 from tensorflow.python.framework import ops
-
+from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics.classification import accuracy_score
 from Processing import Data_Processing as DP
 from Classifier_RNN import LSTM_RNN
 
 
-def prep_batch(x, y, batch_size, idx):
+def prep_batch(x, y, seq_len, batch_size, idx):
     xlen = len(x)
     ylen = len(y)
     assert xlen == ylen
@@ -19,17 +20,19 @@ def prep_batch(x, y, batch_size, idx):
     if idx + batch_size <= xlen:
         newx = x[idx:idx+batch_size]
         newy = y[idx:idx+batch_size]
+        newlen = seq_len[idx:idx+batch_size]
 
     else:
         carryover = batch_size - (xlen - idx)
 
         newx = x[idx:] + x[:carryover]
         newy = y[idx:] + y[:carryover]
+        newlen = seq_len[idx:] + seq_len[:carryover]
 
     # starting point for next batch
     idx += batch_size
 
-    return newx, newy, idx
+    return newx, newy, newlen, idx
 
 
 
@@ -58,16 +61,45 @@ with open('rank_vocab.pkl', 'rb') as f3:
 # make sure vocab isn't unnecesarrily copied
 
 DP = DP('training_dict.pkl', 'testing_dict.pkl', 'rank_vocab.pkl')
-xtrain, ytrain, xtest, ytest, pro_vocab = DP.main(random_state=24)
+# xtrain, ytrain, xtest, ytest, pro_vocab = DP.main(random_state=24)
+
+processed_data = DP.main(random_state=24)
+pro_vocab = processed_data['voc']
+xxtrain = processed_data['trainx']
+yytrain= processed_data['trainy']
+xxtest = processed_data['testx']
+yytest = processed_data['testy']
+train_len = processed_data['trainlen']
+test_len = processed_data['testlen']
+
+old_num = 0
+# need longest paragraph length for padding
+for num in train_len:
+    if num > old_num:
+        old_num = num
+
+maxtrain_len = old_num
+
+xtrain = tf.keras.preprocessing.sequence.pad_sequences(xxtrain, value=0, padding='post', maxlen=old_num)
+ytrain = np.asarray(yytrain)
+
+old_num = 0
+# need longest paragraph length for padding
+for num in test_len:
+    if num > old_num:
+        old_num = num
+xtest = tf.keras.preprocessing.sequence.pad_sequences(xxtest, value=0, padding='post', maxlen=old_num)
+ytest = np.asarray(yytest)
+
+maxtest_len = old_num
+
+if maxtrain_len > maxtest_len:
+    maxseq_len = maxtrain_len
+else:
+    maxseq_len = maxtest_len
 
 vocab_size = len(pro_vocab)
-full_vocab_size = len(vocab_dict)
-# do we 'unk' vocab?
-
-# process data
-
-
-
+# full_vocab_size = len(vocab_dict)
 
 
 n_samples= None # Set n_samples=None to use the whole dataset
@@ -75,7 +107,7 @@ n_samples= None # Set n_samples=None to use the whole dataset
 summaries_dir= 'logs/'# Directory where TensorFlow summaries will be stored'
 batch_size = 100 #Batch size
 train_steps = 1000 #Number of training steps
-hidden_size= 75 # Hidden size of LSTM layer
+hidden_size= [75] # Hidden size of LSTM layer
 embedding_size = 75 # Size of embeddings layer
 
 random_state = 24 # Random state used for data splitting. Default is 0
@@ -102,7 +134,7 @@ model_dir = '{0}/{1}'.format('checkpoints', model_name)
 
 
 
-lstm_model = LSTM_RNN([hidden_size], vocab_size, embedding_size, n_classes, max_len=sequence_len,
+lstm_model = LSTM_RNN(hidden_size, vocab_size, embedding_size, n_classes, max_len=maxseq_len,
                       learning_rate=learning_rate, rand_state=random_state)
 
 
@@ -118,11 +150,11 @@ steps = []
 step = 0
 
 for ii in range(0, train_steps):
-    x, y, idx = prep_batch(xtrain, ytrain, batch_size, idx)
-
+    x, y, sseq_len, idx = prep_batch(xtrain, ytrain, train_len, batch_size, idx)
+    seq_len = np.asarray(sseq_len)
     loss, _, summary = sess.run([lstm_model.loss, lstm_model.train_step, lstm_model.merged],
                                 feed_dict={lstm_model.input: x, lstm_model.target: y,
-                                           lstm_model.seq_len: sequence_len,
+                                           lstm_model.seq_len: seq_len,
                                            lstm_model.dropout_keep_prob: dropout_keep_prob})
 
     train_writer.add_summary(summary, ii)
