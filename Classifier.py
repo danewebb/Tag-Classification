@@ -6,8 +6,8 @@ import os
 import warnings
 import datetime
 from tensorflow.python.framework import ops
-from sklearn.metrics import precision_recall_fscore_support
-from sklearn.metrics.classification import accuracy_score
+# from sklearn.metrics import precision_recall_fscore_support
+# from sklearn.metrics.classification import accuracy_score
 from Processing import Data_Processing as DP
 from Classifier_RNN import LSTM_RNN
 
@@ -25,9 +25,9 @@ def prep_batch(x, y, seq_len, batch_size, idx):
     else:
         carryover = batch_size - (xlen - idx)
 
-        newx = x[idx:] + x[:carryover]
-        newy = y[idx:] + y[:carryover]
-        newlen = seq_len[idx:] + seq_len[:carryover]
+        newx = np.concatenate((x[idx:], x[:carryover]))
+        newy = np.concatenate((y[idx:], y[:carryover]))
+        newlen = np.concatenate((seq_len[idx:], seq_len[:carryover]))
 
     # starting point for next batch
     idx += batch_size
@@ -44,7 +44,7 @@ ops.reset_default_graph()
 
 # n_classes?? how many different tags?
 
-n_classes = 4
+n_classes = 16
 
 #
 # train_data_dir = 'training_dict.pkl'
@@ -73,13 +73,16 @@ train_len = processed_data['trainlen']
 test_len = processed_data['testlen']
 
 old_num = 0
+
 # need longest paragraph length for padding
 for num in train_len:
     if num > old_num:
         old_num = num
 
+# train paras
 maxtrain_len = old_num
 
+# padding to get an even matrix
 xtrain = tf.keras.preprocessing.sequence.pad_sequences(xxtrain, value=0, padding='post', maxlen=old_num)
 ytrain = np.asarray(yytrain)
 
@@ -88,18 +91,20 @@ old_num = 0
 for num in test_len:
     if num > old_num:
         old_num = num
+
+# test paras
 xtest = tf.keras.preprocessing.sequence.pad_sequences(xxtest, value=0, padding='post', maxlen=old_num)
 ytest = np.asarray(yytest)
 
 maxtest_len = old_num
 
+# pad based on longest length
 if maxtrain_len > maxtest_len:
     maxseq_len = maxtrain_len
 else:
     maxseq_len = maxtest_len
 
 vocab_size = len(pro_vocab)
-# full_vocab_size = len(vocab_dict)
 
 
 n_samples= None # Set n_samples=None to use the whole dataset
@@ -161,7 +166,7 @@ for ii in range(0, train_steps):
     trainloss.append(loss)
     steps.append(ii)
 
-    print(f'Step {ii+1} of {train_steps}, LOSS: {trainloss}')
+    print(f'Batch {ii+1} of {train_steps}, LOSS: {loss}')
 
 
 
@@ -171,13 +176,13 @@ for ii in range(0, train_steps):
 
 
 # Save model
-checkpoint_file = '{}/model.ckpt'.format(model_dir)
-save_path = saver.save(sess, checkpoint_file)
-print('Model saved in: {0}'.format(model_dir))
+# Invalid argument: Failed to create a directory: checkpoints/00:00:00; Invalid argument
+# checkpoint_file = '{}/model.ckpt'.format(model_dir)
+# save_path = saver.save(sess, checkpoint_file)
+# print('Model saved in: {0}'.format(model_dir))
 
 
 # tensorboard
-
 
 
 
