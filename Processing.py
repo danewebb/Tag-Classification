@@ -77,27 +77,85 @@ class Data_Processing():
         # or do [S, D, A, T] for now???
 
         one_hot_train = []
+        hot_train = []
         for ii, tags in enumerate(self.ytrain):
-            one_hot_train.append([0, 0, 0, 0])
+            one_hot_train.append([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+            hot_train.append([0, 0, 0, 0])
+            #
             for tag in tags:
 
                 if 'V' in tag or 'I' in tag or 'f' in tag or 'v' in tag or 'TO' in tag or 'OM' in tag or 'P' in tag or \
-                        'Q' in tag or 'q' in tag or 'TE' in tag and one_hot_train[ii][0] == 0:
-                    one_hot_train[ii][0] = 1
-                if 'D' in tag or 'R' in tag or 'B' in tag or 'FR' in tag or 'TR' in tag and one_hot_train[ii][1] == 0:
-                    one_hot_train[ii][1] = 1
+                        'Q' in tag or 'q' in tag or 'TE' in tag and hot_train[ii][0] == 0:
+                    hot_train[ii][0] = 1
+                if 'D' in tag or 'R' in tag or 'B' in tag or 'FR' in tag or 'TR' in tag and hot_train[ii][1] == 0:
+                    hot_train[ii][1] = 1
 
                 if 'A' in tag or 'C' in tag or 'M' in tag or 'J' in tag or 'FC' in tag or 'TC' in tag and \
-                        one_hot_train[ii][2] == 0:
+                        hot_train[ii][2] == 0:
                     one_hot_train[ii][2] = 1
 
-                if 'T' in tag or 'L' in tag or 'k' in tag or 'IN' in tag or 'FL' in tag and one_hot_train[ii][3] == 0:
+                if 'T' in tag or 'L' in tag or 'k' in tag or 'IN' in tag or 'FL' in tag and hot_train[ii][3] == 0:
+                    hot_train[ii][3] = 1
+
+
+            if np.sum(hot_train[ii][:]) == 4:
+                one_hot_train[ii][0] = 1
+            elif np.sum(hot_train[ii][:]) == 3:
+                # 0, 1, 2
+                if hot_train[ii][0] == 1 and hot_train[ii][1] == 1 and hot_train[ii][2] == 1:
+                    one_hot_train[ii][1] = 1
+                # 0, 1, 3
+                elif hot_train[ii][0] == 1 and hot_train[ii][1] == 1 and hot_train[ii][3] == 3:
+                    one_hot_train[ii][2] = 1
+                # 0, 2, 3
+                elif hot_train[ii][0] == 1 and hot_train[ii][2] == 1 and hot_train[ii][3] == 1:
                     one_hot_train[ii][3] = 1
+                # 1, 2, 3
+                elif hot_train[ii][1] == 1 and hot_train[ii][2] == 1 and hot_train[ii][3] == 1:
+                    one_hot_train[ii][4] = 1
+            elif np.sum(hot_train[ii][:]) == 2:
+                # 0, 1
+                if hot_train[ii][0] == 1 and hot_train[ii][1] == 1:
+                    one_hot_train[ii][5] = 1
+                # 0, 2
+                elif hot_train[ii][0] == 1 and hot_train[ii][2] == 1:
+                    one_hot_train[ii][6] = 1
+                # 0, 3
+                elif hot_train[ii][0] == 1 and hot_train[ii][3] == 1:
+                    one_hot_train[ii][7] = 1
+                # 1, 2
+                elif hot_train[ii][1] == 1 and hot_train[ii][2] == 1:
+                    one_hot_train[ii][8] = 1
+                # 1, 3
+                elif hot_train[ii][1] == 1 and hot_train[ii][3] == 1:
+                    one_hot_train[ii][9] = 1
+                # 2, 3
+                elif hot_train[ii][2] == 1 and hot_train[ii][3] == 1:
+                    one_hot_train[ii][10]
+            elif np.sum(hot_train[ii][:]) == 1:
+                # 0
+                if hot_train[ii][0] == 1:
+                    one_hot_train[ii][11] = 1
+                # 1
+                elif hot_train[ii][1] == 1:
+                    one_hot_train[ii][12]
+                # 2
+                elif hot_train[ii][2] == 1:
+                    one_hot_train[ii][13]
+                # 3
+                elif hot_train[ii][3] == 1:
+                    one_hot_train[ii][14]
+            else:
+                one_hot_train[ii][15] = 1
+
+
 
 
         one_hot_test = []
+        hot_test = []
         for ii, tags in enumerate(self.ytest):
-            one_hot_test.append([0, 0, 0, 0])
+            hot_test.append([0, 0, 0, 0])
+            one_hot_test.append([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
             for tag in tags:
 
                 if 'V' in tag or 'I' in tag or 'f' in tag or 'v' in tag or 'TO' in tag or 'OM' in tag or 'P' in tag or \
@@ -113,6 +171,56 @@ class Data_Processing():
 
                 if 'T' in tag or 'L' in tag or 'k' in tag or 'IN' in tag or 'FL' in tag and one_hot_test[ii][3] == 0:
                     one_hot_test[ii][3] = 1
+
+            if np.sum(hot_test[ii][:]) == 4:
+                one_hot_test[ii][0] = 1
+            elif np.sum(hot_test[ii][:]) == 3:
+                # 0, 1, 2
+                if hot_test[ii][0] == 1 and hot_test[ii][1] == 1 and hot_test[ii][2] == 1:
+                    one_hot_test[ii][1] = 1
+                # 0, 1, 3
+                elif hot_test[ii][0] == 1 and hot_test[ii][1] == 1 and hot_test[ii][3] == 3:
+                    one_hot_test[ii][2] = 1
+                # 0, 2, 3
+                elif hot_test[ii][0] == 1 and hot_test[ii][2] == 1 and hot_test[ii][3] == 1:
+                    one_hot_test[ii][3] = 1
+                # 1, 2, 3
+                elif hot_test[ii][1] == 1 and hot_test[ii][2] == 1 and hot_test[ii][3] == 1:
+                    one_hot_test[ii][4] = 1
+            elif np.sum(hot_test[ii][:]) == 2:
+                # 0, 1
+                if hot_test[ii][0] == 1 and hot_test[ii][1] == 1:
+                    one_hot_test[ii][5] = 1
+                # 0, 2
+                elif hot_test[ii][0] == 1 and hot_test[ii][2] == 1:
+                    one_hot_test[ii][6] = 1
+                # 0, 3
+                elif hot_test[ii][0] == 1 and hot_test[ii][3] == 1:
+                    one_hot_test[ii][7] = 1
+                # 1, 2
+                elif hot_test[ii][1] == 1 and hot_test[ii][2] == 1:
+                    one_hot_test[ii][8] = 1
+                # 1, 3
+                elif hot_test[ii][1] == 1 and hot_test[ii][3] == 1:
+                    one_hot_test[ii][9] = 1
+                # 2, 3
+                elif hot_test[ii][2] == 1 and hot_test[ii][3] == 1:
+                    one_hot_test[ii][10]
+            elif np.sum(hot_test[ii][:]) == 1:
+                # 0
+                if hot_test[ii][0] == 1:
+                    one_hot_test[ii][11] = 1
+                # 1
+                elif hot_test[ii][1] == 1:
+                    one_hot_test[ii][12]
+                # 2
+                elif hot_test[ii][2] == 1:
+                    one_hot_test[ii][13]
+                # 3
+                elif hot_test[ii][3] == 1:
+                    one_hot_test[ii][14]
+            else:
+                one_hot_test[ii][15] = 1
 
 
         # print(f'self.tag_to_onehot ending lengths\n'
@@ -164,24 +272,21 @@ class Data_Processing():
                 vocab.append(word)
         return vocab
 
-    def word_to_vec(self):
+    def word_to_vec(self, vocab):
         """
         Converts words in xtrain and xtest into vector form. This is done by replacing the word with its place in a ranked
         vocab list.
         :return:
         """
+
         word_store = []
 
         para_vec = []
 
+        # vocab = []
 
-        vocab = []
-
-        self.vocab_data.reverse()
-        for ele in self.vocab_data:
-            vocab.append(ele[0])
-
-
+        # most common first
+        vocab.reverse()
 
         for paras in self.xtrain: # loops each item in the list
 
@@ -200,9 +305,10 @@ class Data_Processing():
                             elif w == word:
                                 para_vec.append(idx)
                                 break
-                            elif idx == len(self.vocab_data)-1:
+                            elif idx == len(vocab) - 1:
                                 para_vec.append(0)
                                 break
+
 
                     else:
                         word_store.append(let)
@@ -229,7 +335,7 @@ class Data_Processing():
                             elif w == word:
                                 para_vec.append(idx)
                                 break
-                            elif idx == len(self.vocab_data) - 1:
+                            elif idx == len(vocab) - 1:
                                 para_vec.append(0)
                                 break
 
@@ -286,13 +392,14 @@ class Data_Processing():
 
     def main(self, random_state=24):
         output_dict = dict()
+        vocab = self.handle_vocab()
         self.split_data()
         # Lets not make these class variables to
         ytrain, ytest = self.tags_to_one_hot()
         train_para, train_lab, test_para, test_lab = self.random_idx(ytrain, ytest, random_state=random_state)
-        vocab = self.handle_vocab()
 
-        self.word_to_vec()
+
+        self.word_to_vec(vocab)
 
         self.vec_lengths()
 
