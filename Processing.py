@@ -84,7 +84,7 @@ class Data_Processing():
             #
             for tag in tags:
 
-                if 'V' in tag or 'I' in tag or 'f' in tag or 'v' in tag or 'TO' in tag or 'OM' in tag or 'P' in tag or \
+                if 'S' in tag or 'V' in tag or 'I' in tag or 'f' in tag or 'v' in tag or 'TO' in tag or 'OM' in tag or 'P' in tag or \
                         'Q' in tag or 'q' in tag or 'TE' in tag and hot_train[ii][0] == 0:
                     hot_train[ii][0] = 1
                 if 'D' in tag or 'R' in tag or 'B' in tag or 'FR' in tag or 'TR' in tag and hot_train[ii][1] == 0:
@@ -420,3 +420,4 @@ class Data_Processing():
 if __name__ == '__main__':
     PCS = Data_Processing('training_dict.pkl', 'testing_dict.pkl', 'rank_vocab.pkl')
     PCS.main()
+
